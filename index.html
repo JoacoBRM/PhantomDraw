@@ -25,9 +25,9 @@
         
         body, html {
             overscroll-behavior: none;
-            touch-action: none;
             overflow: hidden;
             height: 100vh;
+            height: 100dvh; /* Dynamic viewport height para móviles */
             width: 100vw;
             position: fixed;
         }
@@ -36,14 +36,16 @@
             object-fit: cover;
             position: absolute;
             width: 100%;
-            height: calc(100vh - 180px);
+            height: 60vh;
+            height: 60dvh;
             top: 0;
             left: 0;
         }
         
         @media (max-width: 640px) {
             #cameraFeed {
-                height: calc(100vh - 200px);
+                height: 55vh;
+                height: 55dvh;
             }
         }
         
@@ -53,8 +55,10 @@
             will-change: transform;
             position: absolute;
             pointer-events: auto;
-            max-width: 90vw;
-            max-height: calc(90vh - 200px);
+            max-width: 85vw;
+            max-height: 50vh;
+            max-height: 50dvh;
+            z-index: 10;
         }
         
         #traceImage.locked {
@@ -66,13 +70,54 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: calc(100vh - 180px);
+            height: 60vh;
+            height: 60dvh;
             pointer-events: none;
+            z-index: 5;
         }
         
         @media (max-width: 640px) {
             #drawingCanvas {
-                height: calc(100vh - 200px);
+                height: 55vh;
+                height: 55dvh;
+            }
+        }
+        
+        #controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40vh;
+            height: 40dvh;
+            min-height: 200px;
+            z-index: 20;
+        }
+        
+        @media (max-width: 640px) {
+            #controls {
+                height: 45vh;
+                height: 45dvh;
+                min-height: 220px;
+            }
+        }
+        
+        .gradient-overlay {
+            position: absolute;
+            top: 60vh;
+            top: 60dvh;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent, rgba(17, 24, 39, 0.8));
+            pointer-events: none;
+            z-index: 15;
+        }
+        
+        @media (max-width: 640px) {
+            .gradient-overlay {
+                top: 55vh;
+                top: 55dvh;
             }
         }
         
@@ -99,19 +144,23 @@
             -webkit-user-select: none;
         }
         
-        /* Botones más grandes en móviles */
-        @media (max-width: 640px) {
-            button, label {
-                min-height: 48px;
-                min-width: 48px;
-            }
+        /* Botones más grandes y táctiles */
+        button, label[for="upload"] {
+            min-height: 56px;
+            cursor: pointer;
         }
         
         /* Asegurar que los controles sean visibles sobre el área segura de iOS */
         @supports (padding: env(safe-area-inset-bottom)) {
             #controls {
-                padding-bottom: max(12px, env(safe-area-inset-bottom));
+                padding-bottom: env(safe-area-inset-bottom);
             }
+        }
+        
+        /* Scrollbar para el área de controles si es necesario */
+        .controls-content {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
     </style>
 </head>
@@ -121,62 +170,66 @@
     <video id="cameraFeed" playsinline autoplay muted webkit-playsinline></video>
 
     <!-- 2. Canvas para dibujar (opcional) -->
-    <canvas id="drawingCanvas" class="absolute inset-0 w-full pointer-events-none" style="z-index: 5;"></canvas>
-
-    <!-- Área visual que indica el límite de la cámara -->
-    <div class="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" style="z-index: 1;"></div>
+    <canvas id="drawingCanvas" class="absolute inset-0 w-full pointer-events-none"></canvas>
 
     <!-- 3. La imagen para calcar (superpuesta) -->
-    <img id="traceImage" class="hidden" style="opacity: 0.5; z-index: 10;">
+    <img id="traceImage" class="hidden" style="opacity: 0.5;">
 
-    <!-- 4. Los controles (parte inferior) -->
-    <div id="controls" class="absolute bottom-0 left-0 w-full bg-gray-900 shadow-2xl border-t-2 border-blue-500" style="z-index: 20; padding-bottom: env(safe-area-inset-bottom);">
-        <div class="flex flex-col gap-3 max-w-4xl mx-auto p-4 sm:p-4">
+    <!-- Gradiente de transición -->
+    <div class="gradient-overlay"></div>
+
+    <!-- 4. Los controles (parte inferior FIJA) -->
+    <div id="controls" class="bg-gray-900">
+        <div class="controls-content h-full flex flex-col justify-center px-4 py-6 gap-4 max-w-4xl mx-auto">
             
             <!-- Fila 1: Información de la imagen -->
-            <div id="imageInfo" class="text-xs text-gray-300 text-center hidden">
-                <span id="imageSize" class="inline-block">Tamaño: -</span> 
-                <span class="hidden sm:inline">|</span>
-                <span id="imageScale" class="inline-block">Escala: 100%</span>
-                <span class="hidden sm:inline">|</span> 
-                <span id="imagePosition" class="inline-block">Pos: (0, 0)</span>
+            <div id="imageInfo" class="text-xs sm:text-sm text-gray-300 text-center hidden pb-2">
+                <div class="flex flex-wrap justify-center gap-2">
+                    <span id="imageSize" class="bg-gray-800 px-2 py-1 rounded">Tamaño: -</span> 
+                    <span id="imageScale" class="bg-gray-800 px-2 py-1 rounded">Escala: 100%</span>
+                    <span id="imagePosition" class="bg-gray-800 px-2 py-1 rounded">Pos: (0, 0)</span>
+                </div>
             </div>
             
             <!-- Fila 2: Control de Opacidad -->
-            <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z" clip-rule="evenodd" />
-                </svg>
-                <span class="text-xs sm:text-sm font-medium whitespace-nowrap flex-shrink-0">Opacidad:</span>
-                <input id="opacitySlider" type="range" min="0" max="100" value="50" class="w-full">
-                <span id="opacityValue" class="text-xs sm:text-sm font-bold w-8 sm:w-10 text-right">50%</span>
+            <div class="bg-gray-800 rounded-lg p-4">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z" clip-rule="evenodd" />
+                    </svg>
+                    <div class="flex-1 flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-300 whitespace-nowrap">Opacidad</span>
+                        <input id="opacitySlider" type="range" min="0" max="100" value="50" class="flex-1 h-2">
+                    </div>
+                    <span id="opacityValue" class="text-sm font-bold text-blue-400 w-12 text-right">50%</span>
+                </div>
             </div>
 
             <!-- Fila 3: Botones de control -->
-            <div class="grid grid-cols-3 gap-2">
-                <label for="upload" class="cursor-pointer bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-2 sm:px-4 rounded-lg transition-colors duration-200 text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 touch-manipulation">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 20 20" fill="currentColor">
+            <div class="grid grid-cols-3 gap-3">
+                <label for="upload" class="touch-manipulation cursor-pointer bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-2 shadow-lg hover:shadow-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
                     </svg>
-                    <span>Subir</span>
+                    <span class="text-sm">Subir</span>
                 </label>
                 <input type="file" id="upload" accept="image/*" class="hidden">
 
-                <button id="resetButton" class="bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 text-white font-bold py-3 px-2 sm:px-4 rounded-lg transition-colors duration-200 text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-1 touch-manipulation">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 20 20" fill="currentColor">
+                <button id="resetButton" class="touch-manipulation bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-2 shadow-lg hover:shadow-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
                     </svg>
-                    <span class="hidden sm:inline">Reset</span>
+                    <span class="text-sm">Reset</span>
                 </button>
 
-                <button id="lockButton" class="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white font-bold py-3 px-2 sm:px-4 rounded-lg transition-colors duration-200 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 touch-manipulation">
-                    <svg id="icon-unlocked" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 20 20" fill="currentColor">
+                <button id="lockButton" class="touch-manipulation bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-2 shadow-lg hover:shadow-xl">
+                    <svg id="icon-unlocked" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
                     </svg>
-                    <svg id="icon-locked" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 hidden" viewBox="0 0 20 20" fill="currentColor">
+                    <svg id="icon-locked" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 hidden" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
                     </svg>
-                    <span id="lockText">Libre</span>
+                    <span id="lockText" class="text-sm">Libre</span>
                 </button>
             </div>
         </div>
@@ -292,9 +345,13 @@
             // --- 2. Configurar Canvas ---
             function setupCanvas() {
                 const isMobile = window.innerWidth <= 640;
-                const controlsHeight = isMobile ? 200 : 180;
+                const viewportHeight = window.innerHeight;
+                // Usar 60% o 55% del viewport para la cámara
+                const cameraHeightPercent = isMobile ? 0.55 : 0.60;
+                const cameraHeight = viewportHeight * cameraHeightPercent;
+                
                 drawingCanvas.width = window.innerWidth;
-                drawingCanvas.height = window.innerHeight - controlsHeight;
+                drawingCanvas.height = cameraHeight;
             }
 
             // --- 3. Manejar Subida de Imagen ---
@@ -333,12 +390,12 @@
                 lockText.textContent = isLocked ? 'Fijo' : 'Libre';
                 
                 if (isLocked) {
-                    lockButton.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                    lockButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
                     lockButton.classList.add('bg-red-600', 'hover:bg-red-700');
                     traceImage.classList.add('locked');
                 } else {
                     lockButton.classList.remove('bg-red-600', 'hover:bg-red-700');
-                    lockButton.classList.add('bg-gray-600', 'hover:bg-gray-700');
+                    lockButton.classList.add('bg-gray-700', 'hover:bg-gray-600');
                     traceImage.classList.remove('locked');
                 }
             });
@@ -464,9 +521,14 @@
             }
 
             function resetTransform() {
+                const isMobile = window.innerWidth <= 640;
+                const viewportHeight = window.innerHeight;
+                const cameraHeightPercent = isMobile ? 0.55 : 0.60;
+                const cameraHeight = viewportHeight * cameraHeightPercent;
+                
                 const imgRect = traceImage.getBoundingClientRect();
                 currentX = (window.innerWidth - imgRect.width) / 2;
-                currentY = (window.innerHeight - imgRect.height) / 2;
+                currentY = (cameraHeight - imgRect.height) / 2;
                 scale = 1;
                 
                 traceImage.style.left = '0';
