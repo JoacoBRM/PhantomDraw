@@ -24,11 +24,11 @@ Aplicación web para superponer imágenes sobre la cámara en tiempo real, ideal
 
 ### 🌐 Versión Web
 
-[https://joacobrm.github.io/proyecto_ar_jb](https://joacobrm.github.io/proyecto_ar_jb)
+[https://joacobrm.github.io/PhantomDraw](https://joacobrm.github.io/PhantomDraw)
 
 ### 📱 Descarga APK (Android)
 
-[Descargar APK](https://drive.google.com/drive/folders/16BFA_mQiCD5YlTuVTLPBLgpMuqMMU5Y4?usp=sharing)
+[Descargar APK](heases/latest)
 
 ---
 
