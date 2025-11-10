@@ -1,0 +1,165 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    overscroll-behavior: none;
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height para móviles */
+    width: 100vw;
+    position: fixed;
+}
+
+#cameraFeed {
+    object-fit: cover;
+    position: absolute;
+    width: 100%;
+    height: 60vh;
+    height: 60dvh;
+    top: 0;
+    left: 0;
+}
+
+@media (max-width: 640px) {
+    #cameraFeed {
+        height: 55vh;
+        height: 55dvh;
+    }
+}
+
+#traceImage {
+    touch-action: none;
+    user-select: none;
+    will-change: transform;
+    position: absolute;
+    pointer-events: auto;
+    max-width: 85vw;
+    max-height: 50vh;
+    max-height: 50dvh;
+    z-index: 10;
+    cursor: grab;
+}
+
+#traceImage.locked {
+    pointer-events: none;
+    cursor: default;
+}
+
+#traceImage:active {
+    cursor: grabbing;
+}
+
+#drawingCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60vh;
+    height: 60dvh;
+    pointer-events: none;
+    z-index: 5;
+}
+
+@media (max-width: 640px) {
+    #drawingCanvas {
+        height: 55vh;
+        height: 55dvh;
+    }
+}
+
+#controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40vh;
+    height: 40dvh;
+    min-height: 200px;
+    z-index: 20;
+}
+
+@media (max-width: 640px) {
+    #controls {
+        height: 45vh;
+        height: 45dvh;
+        min-height: 220px;
+    }
+}
+
+.gradient-overlay {
+    position: absolute;
+    top: 60vh;
+    top: 60dvh;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(to bottom, transparent, rgba(17, 24, 39, 0.8));
+    pointer-events: none;
+    z-index: 15;
+}
+
+@media (max-width: 640px) {
+    .gradient-overlay {
+        top: 55vh;
+        top: 55dvh;
+    }
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Mejoras para táctil en móviles */
+.touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Botones más grandes y táctiles */
+button, label[for="upload"] {
+    min-height: 56px;
+    cursor: pointer;
+}
+
+/* Asegurar que los controles sean visibles sobre el área segura de iOS */
+@supports (padding: env(safe-area-inset-bottom)) {
+    #controls {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* Scrollbar para el área de controles si es necesario */
+.controls-content {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Estilos para el control de rotación */
+.rotation-control {
+    background: rgba(31, 41, 55, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+.rotation-button {
+    transition: all 0.2s ease;
+}
+
+.rotation-button:active {
+    transform: scale(0.95);
+}

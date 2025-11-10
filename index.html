@@ -16,153 +16,7 @@
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%234F46E5' width='100' height='100'/><text y='75' x='50' text-anchor='middle' font-size='70' fill='white'>📐</text></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body, html {
-            overscroll-behavior: none;
-            overflow: hidden;
-            height: 100vh;
-            height: 100dvh; /* Dynamic viewport height para móviles */
-            width: 100vw;
-            position: fixed;
-        }
-        
-        #cameraFeed {
-            object-fit: cover;
-            position: absolute;
-            width: 100%;
-            height: 60vh;
-            height: 60dvh;
-            top: 0;
-            left: 0;
-        }
-        
-        @media (max-width: 640px) {
-            #cameraFeed {
-                height: 55vh;
-                height: 55dvh;
-            }
-        }
-        
-        #traceImage {
-            touch-action: none;
-            user-select: none;
-            will-change: transform;
-            position: absolute;
-            pointer-events: auto;
-            max-width: 85vw;
-            max-height: 50vh;
-            max-height: 50dvh;
-            z-index: 10;
-        }
-        
-        #traceImage.locked {
-            pointer-events: none;
-        }
-        
-        #drawingCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60vh;
-            height: 60dvh;
-            pointer-events: none;
-            z-index: 5;
-        }
-        
-        @media (max-width: 640px) {
-            #drawingCanvas {
-                height: 55vh;
-                height: 55dvh;
-            }
-        }
-        
-        #controls {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 40vh;
-            height: 40dvh;
-            min-height: 200px;
-            z-index: 20;
-        }
-        
-        @media (max-width: 640px) {
-            #controls {
-                height: 45vh;
-                height: 45dvh;
-                min-height: 220px;
-            }
-        }
-        
-        .gradient-overlay {
-            position: absolute;
-            top: 60vh;
-            top: 60dvh;
-            left: 0;
-            right: 0;
-            height: 100px;
-            background: linear-gradient(to bottom, transparent, rgba(17, 24, 39, 0.8));
-            pointer-events: none;
-            z-index: 15;
-        }
-        
-        @media (max-width: 640px) {
-            .gradient-overlay {
-                top: 55vh;
-                top: 55dvh;
-            }
-        }
-        
-        .slide-up {
-            animation: slideUp 0.3s ease-out;
-        }
-        
-        @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        /* Mejoras para táctil en móviles */
-        .touch-manipulation {
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        
-        /* Botones más grandes y táctiles */
-        button, label[for="upload"] {
-            min-height: 56px;
-            cursor: pointer;
-        }
-        
-        /* Asegurar que los controles sean visibles sobre el área segura de iOS */
-        @supports (padding: env(safe-area-inset-bottom)) {
-            #controls {
-                padding-bottom: env(safe-area-inset-bottom);
-            }
-        }
-        
-        /* Scrollbar para el área de controles si es necesario */
-        .controls-content {
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-gray-900 text-white">
 
@@ -188,10 +42,39 @@
                     <span id="imageSize" class="bg-gray-800 px-2 py-1 rounded">Tamaño: -</span> 
                     <span id="imageScale" class="bg-gray-800 px-2 py-1 rounded">Escala: 100%</span>
                     <span id="imagePosition" class="bg-gray-800 px-2 py-1 rounded">Pos: (0, 0)</span>
+                    <span id="imageRotation" class="bg-gray-800 px-2 py-1 rounded">Rotación: 0°</span>
                 </div>
             </div>
             
-            <!-- Fila 2: Control de Opacidad -->
+            <!-- Fila 2: Control de Rotación -->
+            <div class="bg-gray-800 rounded-lg p-4 rotation-control">
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="text-sm font-medium text-gray-300">Rotación</span>
+                        </div>
+                        <span id="rotationValue" class="text-sm font-bold text-purple-400 w-12 text-right">0°</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="rotateLeft" class="rotation-button bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white rounded-lg px-3 py-2 flex items-center justify-center touch-manipulation">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <input id="rotationSlider" type="range" min="0" max="359" value="0" step="1" class="flex-1 h-2">
+                        <button id="rotateRight" class="rotation-button bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white rounded-lg px-3 py-2 flex items-center justify-center touch-manipulation">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M12.293 3.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 9H9a5 5 0 00-5 5v2a1 1 0 11-2 0v-2a7 7 0 017-7h5.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fila 3: Control de Opacidad -->
             <div class="bg-gray-800 rounded-lg p-4">
                 <div class="flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
@@ -243,341 +126,6 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- Elementos del DOM ---
-            const cameraFeed = document.getElementById('cameraFeed');
-            const traceImage = document.getElementById('traceImage');
-            const drawingCanvas = document.getElementById('drawingCanvas');
-            const ctx = drawingCanvas.getContext('2d');
-            const opacitySlider = document.getElementById('opacitySlider');
-            const opacityValue = document.getElementById('opacityValue');
-            const uploadInput = document.getElementById('upload');
-            const lockButton = document.getElementById('lockButton');
-            const resetButton = document.getElementById('resetButton');
-            const iconUnlocked = document.getElementById('icon-unlocked');
-            const iconLocked = document.getElementById('icon-locked');
-            const lockText = document.getElementById('lockText');
-            const imageInfo = document.getElementById('imageInfo');
-            const imageSize = document.getElementById('imageSize');
-            const imageScale = document.getElementById('imageScale');
-            const imagePosition = document.getElementById('imagePosition');
-            const messageBox = document.getElementById('messageBox');
-            const messageText = document.getElementById('messageText');
-            const closeMessage = document.getElementById('closeMessage');
-
-            // --- Estado ---
-            let isLocked = false;
-            let currentX = 0;
-            let currentY = 0;
-            let scale = 1;
-            let isDragging = false;
-            let isPinching = false;
-            let startTouchX = 0;
-            let startTouchY = 0;
-            let startX = 0;
-            let startY = 0;
-            let initialPinchDistance = 0;
-            let initialScale = 1;
-
-            // --- 1. Iniciar la Cámara ---
-            async function startCamera() {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    showMessage("Error: Tu navegador no soporta la cámara.", "error");
-                    return;
-                }
-
-                try {
-                    // Configuración optimizada para iOS
-                    const constraints = {
-                        video: { 
-                            facingMode: { ideal: 'environment' },
-                            width: { ideal: 1920 },
-                            height: { ideal: 1080 }
-                        },
-                        audio: false
-                    };
-                    
-                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    cameraFeed.srcObject = stream;
-                    
-                    // Asegurar que el video se reproduzca en iOS
-                    cameraFeed.setAttribute('playsinline', 'true');
-                    cameraFeed.setAttribute('webkit-playsinline', 'true');
-                    cameraFeed.play().catch(err => {
-                        console.warn("Error al reproducir video:", err);
-                    });
-                    
-                    setupCanvas();
-                } catch (err) {
-                    console.warn("Cámara trasera no disponible, intentando frontal:", err);
-                    try {
-                        // Fallback a cualquier cámara
-                        const stream = await navigator.mediaDevices.getUserMedia({ 
-                            video: { 
-                                width: { ideal: 1920 },
-                                height: { ideal: 1080 }
-                            },
-                            audio: false
-                        });
-                        cameraFeed.srcObject = stream;
-                        cameraFeed.setAttribute('playsinline', 'true');
-                        cameraFeed.setAttribute('webkit-playsinline', 'true');
-                        cameraFeed.play().catch(err => {
-                            console.warn("Error al reproducir video:", err);
-                        });
-                        setupCanvas();
-                        showMessage("Usando cámara frontal. La trasera no está disponible.", "info");
-                        setTimeout(() => {
-                            messageBox.classList.add('hidden');
-                        }, 3000);
-                    } catch (err2) {
-                        console.error("Error al acceder a la cámara:", err2);
-                        let errorMsg = `No se pudo acceder a la cámara: ${err2.message}`;
-                        if (window.location.protocol !== 'https:' && !window.location.hostname.includes('localhost') && window.location.hostname !== '127.0.0.1') {
-                            errorMsg += " Nota: Necesitas HTTPS, localhost o 127.0.0.1 para usar la cámara.";
-                        }
-                        showMessage(errorMsg, "error");
-                    }
-                }
-            }
-
-            // --- 2. Configurar Canvas ---
-            function setupCanvas() {
-                const isMobile = window.innerWidth <= 640;
-                const viewportHeight = window.innerHeight;
-                // Usar 60% o 55% del viewport para la cámara
-                const cameraHeightPercent = isMobile ? 0.55 : 0.60;
-                const cameraHeight = viewportHeight * cameraHeightPercent;
-                
-                drawingCanvas.width = window.innerWidth;
-                drawingCanvas.height = cameraHeight;
-            }
-
-            // --- 3. Manejar Subida de Imagen ---
-            uploadInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        traceImage.src = e.target.result;
-                        traceImage.onload = () => {
-                            traceImage.classList.remove('hidden');
-                            resetTransform();
-                            updateImageInfo();
-                            imageInfo.classList.remove('hidden');
-                            showMessage("Imagen cargada. Usa gestos para ajustar.", "info");
-                            setTimeout(() => {
-                                messageBox.classList.add('hidden');
-                            }, 3000);
-                        };
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            // --- 4. Controles ---
-            opacitySlider.addEventListener('input', (event) => {
-                const value = event.target.value;
-                traceImage.style.opacity = value / 100;
-                opacityValue.textContent = value + '%';
-            });
-
-            lockButton.addEventListener('click', () => {
-                isLocked = !isLocked;
-                iconUnlocked.classList.toggle('hidden', isLocked);
-                iconLocked.classList.toggle('hidden', !isLocked);
-                lockText.textContent = isLocked ? 'Fijo' : 'Libre';
-                
-                if (isLocked) {
-                    lockButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-                    lockButton.classList.add('bg-red-600', 'hover:bg-red-700');
-                    traceImage.classList.add('locked');
-                } else {
-                    lockButton.classList.remove('bg-red-600', 'hover:bg-red-700');
-                    lockButton.classList.add('bg-gray-700', 'hover:bg-gray-600');
-                    traceImage.classList.remove('locked');
-                }
-            });
-
-            resetButton.addEventListener('click', () => {
-                if (traceImage.src) {
-                    resetTransform();
-                    showMessage("Imagen recentrada", "info");
-                    setTimeout(() => {
-                        messageBox.classList.add('hidden');
-                    }, 2000);
-                }
-            });
-
-            // --- 5. Gestos Táctiles ---
-            traceImage.addEventListener('touchstart', handleTouchStart, { passive: false });
-            traceImage.addEventListener('touchmove', handleTouchMove, { passive: false });
-            traceImage.addEventListener('touchend', handleTouchEnd, { passive: false });
-
-            function handleTouchStart(e) {
-                if (isLocked) return;
-                e.preventDefault();
-                
-                const touches = e.touches;
-                
-                if (touches.length === 1) {
-                    isDragging = true;
-                    isPinching = false;
-                    startTouchX = touches[0].clientX;
-                    startTouchY = touches[0].clientY;
-                    startX = currentX;
-                    startY = currentY;
-                } else if (touches.length === 2) {
-                    isDragging = false;
-                    isPinching = true;
-                    initialPinchDistance = getDistance(touches[0], touches[1]);
-                    initialScale = scale;
-                }
-            }
-
-            function handleTouchMove(e) {
-                if (isLocked) return;
-                e.preventDefault();
-                
-                const touches = e.touches;
-                
-                if (isDragging && touches.length === 1) {
-                    const deltaX = touches[0].clientX - startTouchX;
-                    const deltaY = touches[0].clientY - startTouchY;
-                    currentX = startX + deltaX;
-                    currentY = startY + deltaY;
-                    applyTransform();
-                    updateImageInfo();
-                } else if (isPinching && touches.length === 2) {
-                    const currentDistance = getDistance(touches[0], touches[1]);
-                    const scaleChange = currentDistance / initialPinchDistance;
-                    scale = Math.max(0.1, Math.min(5, initialScale * scaleChange));
-                    applyTransform();
-                    updateImageInfo();
-                }
-            }
-
-            function handleTouchEnd(e) {
-                if (e.touches.length < 2) {
-                    isPinching = false;
-                    initialPinchDistance = 0;
-                }
-                if (e.touches.length < 1) {
-                    isDragging = false;
-                }
-            }
-
-            // --- 6. Soporte para Mouse (escritorio) ---
-            let isMouseDown = false;
-            
-            traceImage.addEventListener('mousedown', (e) => {
-                if (isLocked) return;
-                e.preventDefault();
-                isMouseDown = true;
-                startTouchX = e.clientX;
-                startTouchY = e.clientY;
-                startX = currentX;
-                startY = currentY;
-                traceImage.style.cursor = 'grabbing';
-            });
-
-            document.addEventListener('mousemove', (e) => {
-                if (!isMouseDown || isLocked) return;
-                const deltaX = e.clientX - startTouchX;
-                const deltaY = e.clientY - startTouchY;
-                currentX = startX + deltaX;
-                currentY = startY + deltaY;
-                applyTransform();
-                updateImageInfo();
-            });
-
-            document.addEventListener('mouseup', () => {
-                if (isMouseDown) {
-                    isMouseDown = false;
-                    traceImage.style.cursor = 'grab';
-                }
-            });
-
-            // Zoom con rueda del mouse
-            traceImage.addEventListener('wheel', (e) => {
-                if (isLocked) return;
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? 0.9 : 1.1;
-                scale = Math.max(0.1, Math.min(5, scale * delta));
-                applyTransform();
-                updateImageInfo();
-            }, { passive: false });
-
-            // --- 7. Funciones Auxiliares ---
-            function getDistance(touch1, touch2) {
-                const dx = touch1.clientX - touch2.clientX;
-                const dy = touch1.clientY - touch2.clientY;
-                return Math.sqrt(dx * dx + dy * dy);
-            }
-
-            function applyTransform() {
-                traceImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
-            }
-
-            function resetTransform() {
-                const isMobile = window.innerWidth <= 640;
-                const viewportHeight = window.innerHeight;
-                const cameraHeightPercent = isMobile ? 0.55 : 0.60;
-                const cameraHeight = viewportHeight * cameraHeightPercent;
-                
-                const imgRect = traceImage.getBoundingClientRect();
-                currentX = (window.innerWidth - imgRect.width) / 2;
-                currentY = (cameraHeight - imgRect.height) / 2;
-                scale = 1;
-                
-                traceImage.style.left = '0';
-                traceImage.style.top = '0';
-                applyTransform();
-                updateImageInfo();
-            }
-
-            function updateImageInfo() {
-                if (traceImage.src) {
-                    imageSize.textContent = `Tamaño: ${traceImage.naturalWidth}×${traceImage.naturalHeight}px`;
-                    imageScale.textContent = `Escala: ${Math.round(scale * 100)}%`;
-                    imagePosition.textContent = `Pos: (${Math.round(currentX)}, ${Math.round(currentY)})`;
-                }
-            }
-
-            function showMessage(msg, type = "error") {
-                messageText.textContent = msg;
-                messageBox.classList.remove('bg-red-600', 'bg-blue-600', 'bg-green-600');
-                
-                if (type === "error") {
-                    messageBox.classList.add('bg-red-600');
-                } else if (type === "info") {
-                    messageBox.classList.add('bg-blue-600');
-                } else if (type === "success") {
-                    messageBox.classList.add('bg-green-600');
-                }
-                
-                messageBox.classList.remove('hidden');
-            }
-
-            closeMessage.addEventListener('click', () => {
-                messageBox.classList.add('hidden');
-            });
-
-            // --- 8. Ajustar canvas al redimensionar ---
-            window.addEventListener('resize', () => {
-                setupCanvas();
-            });
-
-            // --- Iniciar App ---
-            startCamera();
-            
-            // Mensaje de bienvenida
-            showMessage("¡Bienvenido! Carga una imagen para empezar a calcar.", "info");
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 4000);
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
