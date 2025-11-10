@@ -23,6 +23,26 @@ body, html {
     left: 0;
 }
 
+#cameraFeed::-webkit-media-controls {
+    display: none !important;
+}
+
+#cameraFeed::-webkit-media-controls-enclosure {
+    display: none !important;
+}
+
+#cameraFeed::-webkit-media-controls-panel {
+    display: none !important;
+}
+
+#cameraFeed::-webkit-media-controls-play-button {
+    display: none !important;
+}
+
+#cameraFeed::-webkit-media-controls-start-playback-button {
+    display: none !important;
+}
+
 @media (max-width: 640px) {
     #cameraFeed {
         height: 55vh;
