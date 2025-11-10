@@ -21,41 +21,6 @@ body, html {
     height: 60dvh;
     top: 0;
     left: 0;
-    pointer-events: none;
-}
-
-#cameraFeed::-webkit-media-controls {
-    display: none !important;
-}
-
-#cameraFeed::-webkit-media-controls-enclosure {
-    display: none !important;
-}
-
-#cameraFeed::-webkit-media-controls-panel {
-    display: none !important;
-}
-
-#cameraFeed::-webkit-media-controls-play-button {
-    display: none !important;
-}
-
-#cameraFeed::-webkit-media-controls-start-playback-button {
-    display: none !important;
-}
-
-#cameraFeed::-webkit-media-controls-overlay-play-button {
-    display: none !important;
-}
-
-video::-webkit-media-controls-overlay-play-button {
-    display: none !important;
-}
-
-video::-webkit-media-controls-start-playback-button {
-    display: none !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
 }
 
 @media (max-width: 640px) {
@@ -185,16 +150,15 @@ button, label[for="upload"] {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Estilos para el control de rotación */
-.rotation-control {
-    background: rgba(31, 41, 55, 0.95);
-    backdrop-filter: blur(10px);
+/* Estilos para el slider de rotación */
+input[type="range"] {
+    cursor: pointer;
 }
 
-.rotation-button {
-    transition: all 0.2s ease;
+input[type="range"]::-webkit-slider-thumb {
+    cursor: pointer;
 }
 
-.rotation-button:active {
-    transform: scale(0.95);
+input[type="range"]::-moz-range-thumb {
+    cursor: pointer;
 }

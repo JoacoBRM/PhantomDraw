@@ -15,13 +15,16 @@
     <!-- Apple Touch Icon -->
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%234F46E5' width='100' height='100'/><text y='75' x='50' text-anchor='middle' font-size='70' fill='white'>📐</text></svg>">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Estilos personalizados -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-gray-900 text-white">
 
     <!-- 1. El visor de la cámara (fondo) -->
-    <video id="cameraFeed" playsinline autoplay muted webkit-playsinline disablePictureInPicture controlslist="nodownload nofullscreen noremoteplayback"></video>
+    <video id="cameraFeed" playsinline autoplay muted webkit-playsinline></video>
 
     <!-- 2. Canvas para dibujar (opcional) -->
     <canvas id="drawingCanvas" class="absolute inset-0 w-full pointer-events-none"></canvas>
@@ -42,39 +45,11 @@
                     <span id="imageSize" class="bg-gray-800 px-2 py-1 rounded">Tamaño: -</span> 
                     <span id="imageScale" class="bg-gray-800 px-2 py-1 rounded">Escala: 100%</span>
                     <span id="imagePosition" class="bg-gray-800 px-2 py-1 rounded">Pos: (0, 0)</span>
-                    <span id="imageRotation" class="bg-gray-800 px-2 py-1 rounded">Rotación: 0°</span>
+                    <span id="imageRotation" class="bg-gray-800 px-2 py-1 rounded">Rot: 0°</span>
                 </div>
             </div>
             
-            <!-- Fila 2: Control de Rotación -->
-            <div class="bg-gray-800 rounded-lg p-4 rotation-control">
-                <div class="flex flex-col gap-3">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="text-sm font-medium text-gray-300">Rotación</span>
-                        </div>
-                        <span id="rotationValue" class="text-sm font-bold text-purple-400 w-12 text-right">0°</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button id="rotateLeft" class="rotation-button bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white rounded-lg px-3 py-2 flex items-center justify-center touch-manipulation">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                        <input id="rotationSlider" type="range" min="0" max="359" value="0" step="1" class="flex-1 h-2">
-                        <button id="rotateRight" class="rotation-button bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white rounded-lg px-3 py-2 flex items-center justify-center touch-manipulation">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M12.293 3.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 9H9a5 5 0 00-5 5v2a1 1 0 11-2 0v-2a7 7 0 017-7h5.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Fila 3: Control de Opacidad -->
+            <!-- Fila 2: Control de Opacidad -->
             <div class="bg-gray-800 rounded-lg p-4">
                 <div class="flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
@@ -88,7 +63,21 @@
                 </div>
             </div>
 
-            <!-- Fila 3: Botones de control -->
+            <!-- Fila 3: Control de Rotación -->
+            <div class="bg-gray-800 rounded-lg p-4">
+                <div class="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                    </svg>
+                    <div class="flex-1 flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-300 whitespace-nowrap">Rotación</span>
+                        <input id="rotationSlider" type="range" min="0" max="360" value="0" class="flex-1 h-2">
+                    </div>
+                    <span id="rotationValue" class="text-sm font-bold text-green-400 w-12 text-right">0°</span>
+                </div>
+            </div>
+
+            <!-- Fila 4: Botones de control -->
             <div class="grid grid-cols-3 gap-3">
                 <label for="upload" class="touch-manipulation cursor-pointer bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-2 shadow-lg hover:shadow-xl">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
@@ -126,6 +115,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- JavaScript modularizado -->
+    <script src="app.js"></script>
 </body>
 </html>

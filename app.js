@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = drawingCanvas.getContext('2d');
     const opacitySlider = document.getElementById('opacitySlider');
     const opacityValue = document.getElementById('opacityValue');
+    const rotationSlider = document.getElementById('rotationSlider');
+    const rotationValue = document.getElementById('rotationValue');
     const uploadInput = document.getElementById('upload');
     const lockButton = document.getElementById('lockButton');
     const resetButton = document.getElementById('resetButton');
@@ -20,17 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageBox = document.getElementById('messageBox');
     const messageText = document.getElementById('messageText');
     const closeMessage = document.getElementById('closeMessage');
-    const rotateLeftBtn = document.getElementById('rotateLeft');
-    const rotateRightBtn = document.getElementById('rotateRight');
-    const rotationSlider = document.getElementById('rotationSlider');
-    const rotationValue = document.getElementById('rotationValue');
 
     // --- Estado ---
     let isLocked = false;
     let currentX = 0;
     let currentY = 0;
     let scale = 1;
-    let rotation = 0; // Ángulo de rotación en grados
+    let rotation = 0; // Nueva variable para la rotación
     let isDragging = false;
     let isPinching = false;
     let startTouchX = 0;
@@ -64,11 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Asegurar que el video se reproduzca en iOS
             cameraFeed.setAttribute('playsinline', 'true');
             cameraFeed.setAttribute('webkit-playsinline', 'true');
-            cameraFeed.muted = true;
-            cameraFeed.autoplay = true;
-            
-            // Reproducir inmediatamente
-            await cameraFeed.play();
+            cameraFeed.play().catch(err => {
+                console.warn("Error al reproducir video:", err);
+            });
             
             setupCanvas();
         } catch (err) {
@@ -85,12 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 cameraFeed.srcObject = stream;
                 cameraFeed.setAttribute('playsinline', 'true');
                 cameraFeed.setAttribute('webkit-playsinline', 'true');
-                cameraFeed.muted = true;
-                cameraFeed.autoplay = true;
-                
-                // Reproducir inmediatamente
-                await cameraFeed.play();
-                
+                cameraFeed.play().catch(err => {
+                    console.warn("Error al reproducir video:", err);
+                });
                 setupCanvas();
                 showMessage("Usando cámara frontal. La trasera no está disponible.", "info");
                 setTimeout(() => {
@@ -131,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     resetTransform();
                     updateImageInfo();
                     imageInfo.classList.remove('hidden');
-                    showMessage("Imagen cargada. Usa gestos para ajustar y rotar.", "info");
+                    showMessage("Imagen cargada. Usa gestos para ajustar.", "info");
                     setTimeout(() => {
                         messageBox.classList.add('hidden');
                     }, 3000);
@@ -148,28 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
         opacityValue.textContent = value + '%';
     });
 
-    // Control de Rotación con Slider
+    // Nuevo control de rotación
     rotationSlider.addEventListener('input', (event) => {
-        rotation = parseInt(event.target.value);
-        rotationValue.textContent = rotation + '°';
-        applyTransform();
-        updateImageInfo();
-    });
-
-    // Botones de rotación rápida
-    rotateLeftBtn.addEventListener('click', () => {
-        rotation = (rotation - 15) % 360;
-        if (rotation < 0) rotation += 360;
-        rotationSlider.value = rotation;
-        rotationValue.textContent = rotation + '°';
-        applyTransform();
-        updateImageInfo();
-    });
-
-    rotateRightBtn.addEventListener('click', () => {
-        rotation = (rotation + 15) % 360;
-        rotationSlider.value = rotation;
-        rotationValue.textContent = rotation + '°';
+        const value = event.target.value;
+        rotation = parseInt(value);
+        rotationValue.textContent = value + '°';
         applyTransform();
         updateImageInfo();
     });
@@ -270,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startTouchY = e.clientY;
         startX = currentX;
         startY = currentY;
+        traceImage.style.cursor = 'grabbing';
     });
 
     document.addEventListener('mousemove', (e) => {
@@ -283,7 +260,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('mouseup', () => {
-        isMouseDown = false;
+        if (isMouseDown) {
+            isMouseDown = false;
+            traceImage.style.cursor = 'grab';
+        }
     });
 
     // Zoom con rueda del mouse
@@ -304,6 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyTransform() {
+        // Aplicar transformación con rotación incluida
         traceImage.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale}) rotate(${rotation}deg)`;
     }
 
@@ -317,12 +298,14 @@ document.addEventListener('DOMContentLoaded', () => {
         currentX = (window.innerWidth - imgRect.width) / 2;
         currentY = (cameraHeight - imgRect.height) / 2;
         scale = 1;
-        rotation = 0;
+        rotation = 0; // Resetear rotación
+        
+        // Resetear slider de rotación
+        rotationSlider.value = 0;
+        rotationValue.textContent = '0°';
         
         traceImage.style.left = '0';
         traceImage.style.top = '0';
-        rotationSlider.value = 0;
-        rotationValue.textContent = '0°';
         applyTransform();
         updateImageInfo();
     }
@@ -332,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
             imageSize.textContent = `Tamaño: ${traceImage.naturalWidth}×${traceImage.naturalHeight}px`;
             imageScale.textContent = `Escala: ${Math.round(scale * 100)}%`;
             imagePosition.textContent = `Pos: (${Math.round(currentX)}, ${Math.round(currentY)})`;
-            imageRotation.textContent = `Rotación: ${rotation}°`;
+            imageRotation.textContent = `Rot: ${rotation}°`;
         }
     }
 
@@ -360,33 +343,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setupCanvas();
     });
 
-    // --- 9. Forzar reproducción del video cuando esté listo ---
-    cameraFeed.addEventListener('loadedmetadata', () => {
-        cameraFeed.play().catch(err => {
-            console.warn("Error al reproducir después de cargar metadata:", err);
-        });
-    });
-
-    cameraFeed.addEventListener('canplay', () => {
-        cameraFeed.play().catch(err => {
-            console.warn("Error al reproducir cuando puede reproducir:", err);
-        });
-    });
-
-    // Intentar reproducir cuando el usuario interactúa
-    document.addEventListener('touchstart', () => {
-        if (cameraFeed.paused) {
-            cameraFeed.play().catch(err => {
-                console.warn("Error al reproducir en touchstart:", err);
-            });
-        }
-    }, { once: true });
-
     // --- Iniciar App ---
     startCamera();
     
     // Mensaje de bienvenida
-    showMessage("¡Bienvenido! Carga una imagen para empezar a calcar y rotarla.", "info");
+    showMessage("¡Bienvenido! Carga una imagen para empezar a calcar.", "info");
     setTimeout(() => {
         messageBox.classList.add('hidden');
     }, 4000);
