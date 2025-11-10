@@ -40,6 +40,28 @@ document.addEventListener('DOMContentLoaded', () => {
     let initialPinchDistance = 0;
     let initialScale = 1;
 
+    // Prevenir zoom y gestos del navegador (especialmente en iOS)
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+    document.addEventListener('gesturechange', (e) => e.preventDefault());
+    document.addEventListener('gestureend', (e) => e.preventDefault());
+    
+    // Prevenir zoom con doble toque
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e) => {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+            e.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, { passive: false });
+
+    // Prevenir zoom con Ctrl/Cmd + rueda
+    document.addEventListener('wheel', (e) => {
+        if (e.ctrlKey) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
     // --- 1. Iniciar la Cámara ---
     async function startCamera() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -48,10 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Configuración optimizada para iOS
+            // Configuración optimizada para iOS con cámara bloqueada
             const constraints = {
                 video: { 
-                    facingMode: { ideal: 'environment' },
+                    facingMode: { exact: 'environment' }, // exact en lugar de ideal para bloquear la cámara
                     width: { ideal: 1920 },
                     height: { ideal: 1080 }
                 },
@@ -61,20 +83,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const stream = await navigator.mediaDevices.getUserMedia(constraints);
             cameraFeed.srcObject = stream;
             
+            // Bloquear el track de video para evitar cambios
+            const videoTrack = stream.getVideoTracks()[0];
+            if (videoTrack) {
+                const capabilities = videoTrack.getCapabilities();
+                console.log("Cámara bloqueada:", capabilities);
+            }
+            
             // Asegurar que el video se reproduzca en iOS
             cameraFeed.setAttribute('playsinline', 'true');
             cameraFeed.setAttribute('webkit-playsinline', 'true');
+            
+            // Prevenir interacciones táctiles sobre el video
+            cameraFeed.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+            cameraFeed.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+            cameraFeed.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
+            
             cameraFeed.play().catch(err => {
                 console.warn("Error al reproducir video:", err);
             });
             
             setupCanvas();
         } catch (err) {
-            console.warn("Cámara trasera no disponible, intentando frontal:", err);
+            console.warn("Cámara trasera no disponible con 'exact', intentando con 'ideal':", err);
             try {
-                // Fallback a cualquier cámara
+                // Fallback con ideal en lugar de exact
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
+                        facingMode: { ideal: 'environment' },
                         width: { ideal: 1920 },
                         height: { ideal: 1080 }
                     },
@@ -83,11 +119,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 cameraFeed.srcObject = stream;
                 cameraFeed.setAttribute('playsinline', 'true');
                 cameraFeed.setAttribute('webkit-playsinline', 'true');
+                
+                // Prevenir interacciones táctiles sobre el video
+                cameraFeed.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+                cameraFeed.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+                cameraFeed.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
+                
                 cameraFeed.play().catch(err => {
                     console.warn("Error al reproducir video:", err);
                 });
                 setupCanvas();
-                showMessage("Usando cámara frontal. La trasera no está disponible.", "info");
+                showMessage("Cámara trasera activada y bloqueada.", "info");
                 setTimeout(() => {
                     messageBox.classList.add('hidden');
                 }, 3000);
