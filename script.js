@@ -64,9 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Asegurar que el video se reproduzca en iOS
             cameraFeed.setAttribute('playsinline', 'true');
             cameraFeed.setAttribute('webkit-playsinline', 'true');
-            cameraFeed.play().catch(err => {
-                console.warn("Error al reproducir video:", err);
-            });
+            cameraFeed.muted = true;
+            cameraFeed.autoplay = true;
+            
+            // Reproducir inmediatamente
+            await cameraFeed.play();
             
             setupCanvas();
         } catch (err) {
@@ -83,9 +85,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 cameraFeed.srcObject = stream;
                 cameraFeed.setAttribute('playsinline', 'true');
                 cameraFeed.setAttribute('webkit-playsinline', 'true');
-                cameraFeed.play().catch(err => {
-                    console.warn("Error al reproducir video:", err);
-                });
+                cameraFeed.muted = true;
+                cameraFeed.autoplay = true;
+                
+                // Reproducir inmediatamente
+                await cameraFeed.play();
+                
                 setupCanvas();
                 showMessage("Usando cámara frontal. La trasera no está disponible.", "info");
                 setTimeout(() => {
@@ -354,6 +359,28 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', () => {
         setupCanvas();
     });
+
+    // --- 9. Forzar reproducción del video cuando esté listo ---
+    cameraFeed.addEventListener('loadedmetadata', () => {
+        cameraFeed.play().catch(err => {
+            console.warn("Error al reproducir después de cargar metadata:", err);
+        });
+    });
+
+    cameraFeed.addEventListener('canplay', () => {
+        cameraFeed.play().catch(err => {
+            console.warn("Error al reproducir cuando puede reproducir:", err);
+        });
+    });
+
+    // Intentar reproducir cuando el usuario interactúa
+    document.addEventListener('touchstart', () => {
+        if (cameraFeed.paused) {
+            cameraFeed.play().catch(err => {
+                console.warn("Error al reproducir en touchstart:", err);
+            });
+        }
+    }, { once: true });
 
     // --- Iniciar App ---
     startCamera();

@@ -21,6 +21,7 @@ body, html {
     height: 60dvh;
     top: 0;
     left: 0;
+    pointer-events: none;
 }
 
 #cameraFeed::-webkit-media-controls {
@@ -41,6 +42,20 @@ body, html {
 
 #cameraFeed::-webkit-media-controls-start-playback-button {
     display: none !important;
+}
+
+#cameraFeed::-webkit-media-controls-overlay-play-button {
+    display: none !important;
+}
+
+video::-webkit-media-controls-overlay-play-button {
+    display: none !important;
+}
+
+video::-webkit-media-controls-start-playback-button {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 @media (max-width: 640px) {
