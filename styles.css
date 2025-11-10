@@ -11,6 +11,9 @@ body, html {
     height: 100dvh; /* Dynamic viewport height para móviles */
     width: 100vw;
     position: fixed;
+    touch-action: pan-y; /* Solo permite scroll vertical en controles */
+    -webkit-user-select: none; /* Previene selección en iOS */
+    user-select: none;
 }
 
 #cameraFeed {
@@ -21,12 +24,28 @@ body, html {
     height: 60dvh;
     top: 0;
     left: 0;
+    pointer-events: none; /* Evita que se pueda interactuar con el video */
+    touch-action: none; /* Desactiva gestos táctiles sobre la cámara */
+    user-select: none; /* Evita selección */
+    -webkit-user-select: none;
+}
+
+#cameraOverlay {
+    pointer-events: none;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 @media (max-width: 640px) {
     #cameraFeed {
         height: 55vh;
         height: 55dvh;
+    }
+    
+    #cameraOverlay {
+        height: 55vh !important;
+        height: 55dvh !important;
     }
 }
 
