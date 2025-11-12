@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const opacityValue = document.getElementById('opacityValue');
     const rotationSlider = document.getElementById('rotationSlider');
     const rotationValue = document.getElementById('rotationValue');
+    const rotationIncrement = document.getElementById('rotationIncrement');
+    const rotationDecrement = document.getElementById('rotationDecrement');
     const uploadInput = document.getElementById('upload');
     const lockButton = document.getElementById('lockButton');
     const resetButton = document.getElementById('resetButton');
@@ -164,6 +166,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const value = event.target.value;
         rotation = parseInt(value);
         rotationValue.textContent = value + '°';
+        applyTransform();
+        updateImageInfo();
+    });
+
+    // Botones de incremento/decremento de rotación
+    rotationIncrement.addEventListener('click', () => {
+        rotation = (rotation + 1) % 361;
+        if (rotation === 361) rotation = 0;
+        rotationSlider.value = rotation;
+        rotationValue.textContent = rotation + '°';
+        applyTransform();
+        updateImageInfo();
+    });
+
+    rotationDecrement.addEventListener('click', () => {
+        rotation = rotation - 1;
+        if (rotation < 0) rotation = 360;
+        rotationSlider.value = rotation;
+        rotationValue.textContent = rotation + '°';
         applyTransform();
         updateImageInfo();
     });
