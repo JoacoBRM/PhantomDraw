@@ -41,6 +41,13 @@ body, html {
     max-height: 50dvh;
     z-index: 10;
     cursor: grab;
+    border: 3px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+#traceImage.dragging {
+    border-color: white;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
 #traceImage.locked {

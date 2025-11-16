@@ -324,11 +324,13 @@ document.addEventListener('DOMContentLoaded', () => {
             startTouchY = touches[0].clientY;
             startX = currentX;
             startY = currentY;
+            traceImage.classList.add('dragging');
         } else if (touches.length === 2) {
             isDragging = false;
             isPinching = true;
             initialPinchDistance = getDistance(touches[0], touches[1]);
             initialScale = scale;
+            traceImage.classList.add('dragging');
         }
     }
 
@@ -361,6 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (e.touches.length < 1) {
             isDragging = false;
+            traceImage.classList.remove('dragging');
         }
     }
 
@@ -376,6 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startX = currentX;
         startY = currentY;
         traceImage.style.cursor = 'grabbing';
+        traceImage.classList.add('dragging');
     });
 
     document.addEventListener('mousemove', (e) => {
@@ -392,6 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isMouseDown) {
             isMouseDown = false;
             traceImage.style.cursor = 'grab';
+            traceImage.classList.remove('dragging');
         }
     });
 
