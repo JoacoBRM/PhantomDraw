@@ -32,10 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageText = document.getElementById('messageText');
     const closeMessage = document.getElementById('closeMessage');
     const restartCameraButton = document.getElementById('restartCameraButton');
-    const lensLockButton = document.getElementById('lensLockButton');
-    const lensLockText = document.getElementById('lensLockText');
-    const lensUnlockedIcon = document.getElementById('lens-unlocked');
-    const lensLockedIcon = document.getElementById('lens-locked');
+
     const toggleControls = document.getElementById('toggleControls');
     const iconMaximize = document.getElementById('icon-maximize');
     const iconMinimize = document.getElementById('icon-minimize');
@@ -46,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Estado ---
     let isLocked = false;
-    let isLensLocked = false; // Estado del bloqueo de lente
     let isFullScreen = false; // Estado de pantalla completa
     let currentX = 0;
     let currentY = 0;
@@ -110,13 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn("Error al iniciar cámara (trasera/específica):", err);
 
             // Si falló con un deviceId específico, desactivar el bloqueo y reintentar normal
-            if (deviceId) {
-                showMessage("No se pudo bloquear el lente actual. Reintentando...", "error");
-                isLensLocked = false;
-                updateLensLockUI();
-                await startCamera(); // Reintentar sin deviceId
-                return;
-            }
+            // Si falló con un deviceId específico, desactivar el bloqueo y reintentar normal
+            // (Lógica removida al eliminar Lens Lock)
+
 
             try {
                 // Fallback a cualquier cámara (solo si no estabamos forzando ID)
@@ -356,53 +348,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Toggle de bloqueo de lente
-    if (lensLockButton) {
-        lensLockButton.addEventListener('click', () => {
-            isLensLocked = !isLensLocked;
-            updateLensLockUI();
+    // --- 8. Ajustar canvas al redimensionar y Visibilidad ---
 
-            if (isLensLocked) {
-                // Habilitar bloqueo: Obtener ID actual y reiniciar stream
-                if (stream && stream.getVideoTracks().length > 0) {
-                    const track = stream.getVideoTracks()[0];
-                    const settings = track.getSettings();
-                    const currentDeviceId = settings.deviceId;
-
-                    if (currentDeviceId) {
-                        console.log("Bloqueando lente en deviceId:", currentDeviceId);
-                        showMessage("Bloqueando lente actual...", "info");
-                        startCamera(currentDeviceId);
-                    } else {
-                        showMessage("No se pudo identificar el lente actual.", "error");
-                        isLensLocked = false;
-                        updateLensLockUI();
-                    }
-                }
-            } else {
-                // Deshabilitar bloqueo: Reiniciar con configuración automática
-                console.log("Desbloqueando lente...");
-                showMessage("Lente desbloqueado (Auto)", "info");
-                startCamera(null);
-            }
-        });
-    }
-
-    function updateLensLockUI() {
-        if (!lensLockButton) return;
-
-        lensUnlockedIcon.classList.toggle('hidden', isLensLocked);
-        lensLockedIcon.classList.toggle('hidden', !isLensLocked);
-        lensLockText.textContent = isLensLocked ? 'Fijo' : 'Lente';
-
-        if (isLensLocked) {
-            lensLockButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
-            lensLockButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
-        } else {
-            lensLockButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-            lensLockButton.classList.add('bg-gray-700', 'hover:bg-gray-600');
-        }
-    }
 
     // Toggle de Pantalla Completa / Menu Flotante
     if (toggleControls) {
@@ -626,11 +573,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Esto es aceptable como fallback. Actualizaremos el UI para reflejar que se desbloqueó o intentaremos mantenerlo si guardamos el ID.
 
                 // Decisión Rápida: Resetear a desbloqueado si se recupera del background para asegurar funcionamiento
-                if (isLensLocked) {
-                    isLensLocked = false;
-                    updateLensLockUI();
-                }
+                // Decisión Rápida: Resetear a desbloqueado si se recupera del background para asegurar funcionamiento
                 startCamera();
+
             }
         }
     });
