@@ -90,11 +90,11 @@
                         </svg>
                         <div class="flex-1 flex items-center gap-2">
                             <span
-                                class="text-sm font-medium text-gray-300 whitespace-nowrap hidden sm:block">Opacidad</span>
+                                class="text-[9px] sm:text-sm font-medium text-gray-300 whitespace-nowrap block">Opacidad</span>
                             <input id="opacitySlider" type="range" min="0" max="100" value="50" class="flex-1 h-2">
                         </div>
                         <span id="opacityValue"
-                            class="text-sm font-bold text-blue-400 w-12 text-right hidden sm:block">50%</span>
+                            class="text-[9px] sm:text-sm font-bold text-blue-400 w-8 sm:w-12 text-right block">50%</span>
                     </div>
                 </div>
 
@@ -116,7 +116,8 @@
                             </svg>
                         </button>
                         <div class="flex-1 flex items-center gap-2">
-                            <span class="text-sm font-medium text-gray-300 whitespace-nowrap">Rotación</span>
+                            <span
+                                class="text-[9px] sm:text-sm font-medium text-gray-300 whitespace-nowrap block">Rotación</span>
                             <input id="rotationSlider" type="range" min="0" max="360" value="0" class="flex-1 h-2">
                         </div>
                         <button id="rotationIncrement"
@@ -129,7 +130,7 @@
                             </svg>
                         </button>
                         <span id="rotationValue"
-                            class="text-sm font-bold text-green-400 w-12 text-right hidden sm:block">0°</span>
+                            class="text-[9px] sm:text-sm font-bold text-green-400 w-8 sm:w-12 text-right block">0°</span>
                     </div>
                 </div>
 
@@ -142,7 +143,7 @@
                                 d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
                                 clip-rule="evenodd" />
                         </svg>
-                        <span class="text-[10px] sm:text-xs hidden sm:block">Subir</span>
+                        <span class="text-[8px] xs:text-[9px] sm:text-xs block">Subir</span>
                     </label>
                     <input type="file" id="upload" accept="image/*" class="hidden">
 
@@ -153,7 +154,7 @@
                                 d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
                                 clip-rule="evenodd" />
                         </svg>
-                        <span class="text-[10px] sm:text-xs hidden sm:block">Filtros</span>
+                        <span class="text-[8px] xs:text-[9px] sm:text-xs block">Filtros</span>
                     </button>
 
                     <button id="resetButton"
@@ -163,7 +164,7 @@
                                 d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
                                 clip-rule="evenodd" />
                         </svg>
-                        <span class="text-[10px] sm:text-xs hidden sm:block">Reset</span>
+                        <span class="text-[8px] xs:text-[9px] sm:text-xs block">Reset</span>
                     </button>
 
                     <button id="lockButton"
@@ -179,7 +180,7 @@
                                 d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
                                 clip-rule="evenodd" />
                         </svg>
-                        <span id="lockText" class="text-[10px] sm:text-xs hidden sm:block">Fijar IMG</span>
+                        <span id="lockText" class="text-[8px] xs:text-[9px] sm:text-xs block">Fijar IMG</span>
                     </button>
 
                     <!-- Lens Lock Button -->
@@ -197,7 +198,7 @@
                                 d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
                                 clip-rule="evenodd" />
                         </svg>
-                        <span id="lensLockText" class="text-[10px] sm:text-xs hidden sm:block">Lente</span>
+                        <span id="lensLockText" class="text-[8px] xs:text-[9px] sm:text-xs block">Lente</span>
                     </button>
 
                     <!-- Camera Restart Button -->
@@ -208,7 +209,7 @@
                                 d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z"
                                 clip-rule="evenodd" />
                         </svg>
-                        <span class="text-[10px] sm:text-xs hidden sm:block">Reiniciar</span>
+                        <span class="text-[8px] xs:text-[9px] sm:text-xs block">Reiniciar</span>
                     </button>
                 </div>
             </div> <!-- CIERRE DE MENU PRINCIPAL -->

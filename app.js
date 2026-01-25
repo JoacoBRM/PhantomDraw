@@ -186,6 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             };
             reader.readAsDataURL(file);
+            // IMPORTANTE: Limpiar el valor del input para permitir seleccionar el mismo archivo de nuevo
+            uploadInput.value = '';
         }
     });
 
@@ -423,9 +425,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 5. Gestos Táctiles ---
+    // --- 5. Gestos Táctiles ---
+    // Touchstart sigue en la imagen para iniciar la interacción
     traceImage.addEventListener('touchstart', handleTouchStart, { passive: false });
-    traceImage.addEventListener('touchmove', handleTouchMove, { passive: false });
-    traceImage.addEventListener('touchend', handleTouchEnd, { passive: false });
+    // Move y End van al DOCUMENTO para permitir salir de la imagen
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd, { passive: false });
 
     function handleTouchStart(e) {
         if (isLocked) return;
@@ -452,7 +457,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleTouchMove(e) {
         if (isLocked) return;
-        e.preventDefault();
+        // Solo prevenir default si estamos arrastrando o pellizcando
+        if (isDragging || isPinching) {
+            e.preventDefault();
+        } else {
+            return; // Si no estamos interactuando, no hacer nada
+        }
 
         const touches = e.touches;
 
@@ -541,9 +551,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetTransform() {
         const viewportHeight = window.innerHeight;
 
-        // Simplemente centramos en el viewport width y height actual de la cámara (que ahora es full screen)
-        currentX = (window.innerWidth - traceImage.naturalWidth) / 2;
-        currentY = (viewportHeight - traceImage.naturalHeight) / 2;
+        // Safety check
+        if (!traceImage.naturalWidth || !traceImage.naturalHeight) {
+            console.warn("Imagen sin dimensiones, usando defaults.");
+            currentX = window.innerWidth / 2;
+            currentY = viewportHeight / 2;
+        } else {
+            // Simplemente centramos en el viewport width y height actual de la cámara (que ahora es full screen)
+            currentX = (window.innerWidth - traceImage.naturalWidth) / 2;
+            currentY = (viewportHeight - traceImage.naturalHeight) / 2;
+        }
 
         scale = 1;
         rotation = 0; // Resetear rotación
