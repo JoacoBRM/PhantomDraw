@@ -4,11 +4,13 @@
     box-sizing: border-box;
 }
 
-body, html {
+body,
+html {
     overscroll-behavior: none;
     overflow: hidden;
     height: 100vh;
-    height: 100dvh; /* Dynamic viewport height para móviles */
+    height: 100dvh;
+    /* Dynamic viewport height para móviles */
     width: 100vw;
     position: fixed;
 }
@@ -17,16 +19,16 @@ body, html {
     object-fit: cover;
     position: absolute;
     width: 100%;
-    height: 60vh;
-    height: 60dvh;
+    height: 100vh;
+    height: 100dvh;
     top: 0;
     left: 0;
 }
 
 @media (max-width: 640px) {
     #cameraFeed {
-        height: 55vh;
-        height: 55dvh;
+        height: 100vh;
+        height: 100dvh;
     }
 }
 
@@ -37,8 +39,9 @@ body, html {
     position: absolute;
     pointer-events: auto;
     max-width: 85vw;
-    max-height: 50vh;
-    max-height: 50dvh;
+    max-height: 80vh;
+    /* Increased max height */
+    max-height: 80dvh;
     z-index: 10;
     cursor: grab;
     border: 3px solid transparent;
@@ -64,55 +67,62 @@ body, html {
     top: 0;
     left: 0;
     width: 100%;
-    height: 60vh;
-    height: 60dvh;
+    height: 100vh;
+    height: 100dvh;
     pointer-events: none;
     z-index: 5;
 }
 
 @media (max-width: 640px) {
     #drawingCanvas {
-        height: 55vh;
-        height: 55dvh;
+        height: 100vh;
+        height: 100dvh;
     }
 }
 
 #controls {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 40vh;
-    height: 40dvh;
-    min-height: 200px;
-    z-index: 20;
+    bottom: 80px;
+    /* Above the toggle button */
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    width: 90%;
+    max-width: 400px;
+    height: auto;
+    max-height: 70vh;
+    background: rgba(17, 24, 39, 0.95);
+    /* Darker opacity */
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    z-index: 40;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#controls.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) scale(1);
+    bottom: 90px;
 }
 
 @media (max-width: 640px) {
     #controls {
-        height: 45vh;
-        height: 45dvh;
-        min-height: 220px;
+        bottom: 70px;
+        width: 95%;
+    }
+
+    #controls.visible {
+        bottom: 80px;
     }
 }
 
 .gradient-overlay {
-    position: absolute;
-    top: 60vh;
-    top: 60dvh;
-    left: 0;
-    right: 0;
-    height: 100px;
-    background: linear-gradient(to bottom, transparent, rgba(17, 24, 39, 0.8));
-    pointer-events: none;
-    z-index: 15;
-}
-
-@media (max-width: 640px) {
-    .gradient-overlay {
-        top: 55vh;
-        top: 55dvh;
-    }
+    display: none;
+    /* No longer needed in full overlay mode */
 }
 
 .slide-up {
@@ -124,6 +134,7 @@ body, html {
         transform: translateY(100%);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -139,7 +150,8 @@ body, html {
 }
 
 /* Botones más grandes y táctiles */
-button, label[for="upload"] {
+button,
+label[for="upload"] {
     min-height: 56px;
     cursor: pointer;
 }

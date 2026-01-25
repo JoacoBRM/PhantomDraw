@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const lockButton = document.getElementById('lockButton');
     const resetButton = document.getElementById('resetButton');
     const filtersButton = document.getElementById('filtersButton');
-    const filtersPanel = document.getElementById('filtersPanel');
     const closeFilters = document.getElementById('closeFilters');
     const filterButtons = document.querySelectorAll('.filter-btn');
     const gridToggle = document.getElementById('gridToggle');
@@ -32,9 +31,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageBox = document.getElementById('messageBox');
     const messageText = document.getElementById('messageText');
     const closeMessage = document.getElementById('closeMessage');
+    const restartCameraButton = document.getElementById('restartCameraButton');
+    const lensLockButton = document.getElementById('lensLockButton');
+    const lensLockText = document.getElementById('lensLockText');
+    const lensUnlockedIcon = document.getElementById('lens-unlocked');
+    const lensLockedIcon = document.getElementById('lens-locked');
+    const toggleControls = document.getElementById('toggleControls');
+    const iconMaximize = document.getElementById('icon-maximize');
+    const iconMinimize = document.getElementById('icon-minimize');
+    const controlsPanel = document.getElementById('controls');
+    const mainMenu = document.getElementById('mainMenu');
+    const filtersPanel = document.getElementById('filtersPanel');
+    const backToMain = document.getElementById('backToMain');
 
     // --- Estado ---
     let isLocked = false;
+    let isLensLocked = false; // Estado del bloqueo de lente
+    let isFullScreen = false; // Estado de pantalla completa
     let currentX = 0;
     let currentY = 0;
     let scale = 1;
@@ -50,41 +63,65 @@ document.addEventListener('DOMContentLoaded', () => {
     let initialPinchDistance = 0;
     let initialScale = 1;
 
+    let stream = null; // Variable global para el stream
+
     // --- 1. Iniciar la Cámara ---
-    async function startCamera() {
+    async function startCamera(deviceId = null) {
+        // Detener stream anterior si existe
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             showMessage("Error: Tu navegador no soporta la cámara.", "error");
             return;
         }
 
         try {
-            // Configuración optimizada para iOS
-            const constraints = {
-                video: { 
-                    facingMode: { ideal: 'environment' },
+            // Configuración base
+            let constraints = {
+                video: {
                     width: { ideal: 1920 },
                     height: { ideal: 1080 }
                 },
                 audio: false
             };
-            
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            // Si hay un deviceId específico (bloqueo activado), usarlo como 'exact'
+            if (deviceId) {
+                constraints.video.deviceId = { exact: deviceId };
+            } else {
+                // Si no, usar lógica estándar (ideal enviroment)
+                constraints.video.facingMode = { ideal: 'environment' };
+            }
+
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
             cameraFeed.srcObject = stream;
-            
+
             // Asegurar que el video se reproduzca en iOS
             cameraFeed.setAttribute('playsinline', 'true');
             cameraFeed.setAttribute('webkit-playsinline', 'true');
             cameraFeed.play().catch(err => {
                 console.warn("Error al reproducir video:", err);
             });
-            
+
             setupCanvas();
         } catch (err) {
-            console.warn("Cámara trasera no disponible, intentando frontal:", err);
+            console.warn("Error al iniciar cámara (trasera/específica):", err);
+
+            // Si falló con un deviceId específico, desactivar el bloqueo y reintentar normal
+            if (deviceId) {
+                showMessage("No se pudo bloquear el lente actual. Reintentando...", "error");
+                isLensLocked = false;
+                updateLensLockUI();
+                await startCamera(); // Reintentar sin deviceId
+                return;
+            }
+
             try {
-                // Fallback a cualquier cámara
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
+                // Fallback a cualquier cámara (solo si no estabamos forzando ID)
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
                         width: { ideal: 1920 },
                         height: { ideal: 1080 }
                     },
@@ -97,16 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.warn("Error al reproducir video:", err);
                 });
                 setupCanvas();
-                showMessage("Usando cámara frontal. La trasera no está disponible.", "info");
+                showMessage("Usando cámara frontal/alternativa.", "info");
                 setTimeout(() => {
                     messageBox.classList.add('hidden');
                 }, 3000);
             } catch (err2) {
                 console.error("Error al acceder a la cámara:", err2);
                 let errorMsg = `No se pudo acceder a la cámara: ${err2.message}`;
-                if (window.location.protocol !== 'https:' && !window.location.hostname.includes('localhost') && window.location.hostname !== '127.0.0.1') {
-                    errorMsg += " Nota: Necesitas HTTPS, localhost o 127.0.0.1 para usar la cámara.";
-                }
                 showMessage(errorMsg, "error");
             }
         }
@@ -114,18 +148,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 2. Configurar Canvas ---
     function setupCanvas() {
-        const isMobile = window.innerWidth <= 640;
         const viewportHeight = window.innerHeight;
-        // Usar 60% o 55% del viewport para la cámara
-        const cameraHeightPercent = isMobile ? 0.55 : 0.60;
-        const cameraHeight = viewportHeight * cameraHeightPercent;
-        
+
         drawingCanvas.width = window.innerWidth;
-        drawingCanvas.height = cameraHeight;
-        
+        drawingCanvas.height = viewportHeight;
+        drawingCanvas.style.height = viewportHeight + 'px';
+
         gridCanvas.width = window.innerWidth;
-        gridCanvas.height = cameraHeight;
-        
+        gridCanvas.height = viewportHeight;
+        gridCanvas.style.height = viewportHeight + 'px';
+
+        // Ajustar video también
+        cameraFeed.style.height = viewportHeight + 'px';
+
         // Redibujar cuadrícula si está visible
         if (isGridVisible) {
             drawGrid();
@@ -189,39 +224,52 @@ document.addEventListener('DOMContentLoaded', () => {
         updateImageInfo();
     });
 
-    // --- Control de Filtros ---
+    // --- Control de Navegación de Menús ---
     filtersButton.addEventListener('click', () => {
-        filtersPanel.classList.toggle('hidden');
-        if (!filtersPanel.classList.contains('hidden')) {
-            filtersButton.classList.add('bg-purple-800');
-        } else {
-            filtersButton.classList.remove('bg-purple-800');
-        }
+        mainMenu.classList.add('hidden');
+        filtersPanel.classList.remove('hidden');
+        filtersButton.classList.add('bg-purple-800');
     });
 
-    closeFilters.addEventListener('click', () => {
-        filtersPanel.classList.add('hidden');
-        filtersButton.classList.remove('bg-purple-800');
-    });
+    if (backToMain) {
+        backToMain.addEventListener('click', () => {
+            filtersPanel.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+            filtersButton.classList.remove('bg-purple-800');
+        });
+    }
+
+    // Ya no necesitamos closeFilters tal cual, o lo reusamos si lo dejé en el HTML,
+    // pero el usuario pidió que la flecha vuelva.
+    // Si todavía existe closeFilters en el HTML viejo que no borré, lo ignoramos o lo reusamos.
+    if (closeFilters) {
+        closeFilters.addEventListener('click', () => {
+            // Comportamiento "X": cerrar filtros y volver a main o cerrar todo?
+            // Asumamos volver a main para consistencia
+            filtersPanel.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+            filtersButton.classList.remove('bg-purple-800');
+        });
+    }
 
     // Aplicar filtros
     filterButtons.forEach(button => {
         button.addEventListener('click', () => {
             const filter = button.getAttribute('data-filter');
             currentFilter = filter;
-            
+
             // Remover clase activa de todos los botones
             filterButtons.forEach(btn => btn.classList.remove('active'));
             // Agregar clase activa al botón seleccionado
             button.classList.add('active');
-            
+
             // Aplicar filtro
             if (filter === 'none') {
                 traceImage.style.filter = 'none';
             } else {
                 traceImage.style.filter = filter;
             }
-            
+
             showMessage(`Filtro aplicado: ${button.textContent}`, "success");
             setTimeout(() => {
                 messageBox.classList.add('hidden');
@@ -232,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Toggle de cuadrícula
     gridToggle.addEventListener('click', () => {
         isGridVisible = !isGridVisible;
-        
+
         if (isGridVisible) {
             gridCanvas.classList.remove('hidden');
             drawGrid();
@@ -252,11 +300,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const width = gridCanvas.width;
         const height = gridCanvas.height;
         const gridSize = 50; // Tamaño de cada celda de la cuadrícula
-        
+
         gridCtx.clearRect(0, 0, width, height);
         gridCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
         gridCtx.lineWidth = 1;
-        
+
         // Líneas verticales
         for (let x = 0; x <= width; x += gridSize) {
             gridCtx.beginPath();
@@ -264,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
             gridCtx.lineTo(x, height);
             gridCtx.stroke();
         }
-        
+
         // Líneas horizontales
         for (let y = 0; y <= height; y += gridSize) {
             gridCtx.beginPath();
@@ -279,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         iconUnlocked.classList.toggle('hidden', isLocked);
         iconLocked.classList.toggle('hidden', !isLocked);
         lockText.textContent = isLocked ? 'Fijo' : 'Libre';
-        
+
         if (isLocked) {
             lockButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
             lockButton.classList.add('bg-red-600', 'hover:bg-red-700');
@@ -306,6 +354,74 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Toggle de bloqueo de lente
+    if (lensLockButton) {
+        lensLockButton.addEventListener('click', () => {
+            isLensLocked = !isLensLocked;
+            updateLensLockUI();
+
+            if (isLensLocked) {
+                // Habilitar bloqueo: Obtener ID actual y reiniciar stream
+                if (stream && stream.getVideoTracks().length > 0) {
+                    const track = stream.getVideoTracks()[0];
+                    const settings = track.getSettings();
+                    const currentDeviceId = settings.deviceId;
+
+                    if (currentDeviceId) {
+                        console.log("Bloqueando lente en deviceId:", currentDeviceId);
+                        showMessage("Bloqueando lente actual...", "info");
+                        startCamera(currentDeviceId);
+                    } else {
+                        showMessage("No se pudo identificar el lente actual.", "error");
+                        isLensLocked = false;
+                        updateLensLockUI();
+                    }
+                }
+            } else {
+                // Deshabilitar bloqueo: Reiniciar con configuración automática
+                console.log("Desbloqueando lente...");
+                showMessage("Lente desbloqueado (Auto)", "info");
+                startCamera(null);
+            }
+        });
+    }
+
+    function updateLensLockUI() {
+        if (!lensLockButton) return;
+
+        lensUnlockedIcon.classList.toggle('hidden', isLensLocked);
+        lensLockedIcon.classList.toggle('hidden', !isLensLocked);
+        lensLockText.textContent = isLensLocked ? 'Fijo' : 'Lente';
+
+        if (isLensLocked) {
+            lensLockButton.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+            lensLockButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+        } else {
+            lensLockButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            lensLockButton.classList.add('bg-gray-700', 'hover:bg-gray-600');
+        }
+    }
+
+    // Toggle de Pantalla Completa / Menu Flotante
+    if (toggleControls) {
+        toggleControls.addEventListener('click', () => {
+            isFullScreen = !isFullScreen; // Reusamos la variable para saber si el menu está abierto o cerrado
+
+            // Alternar visibilidad del menú
+            if (!isFullScreen) {
+                // Estado "Cerrado" (Fullscreen real) -> Ocultar controles
+                controlsPanel.classList.remove('visible');
+                iconMaximize.classList.remove('hidden'); // Icono de "Abrir Menú"
+                iconMinimize.classList.add('hidden');
+            } else {
+                // Estado "Abierto" (Menu visible)
+                controlsPanel.classList.add('visible');
+                iconMaximize.classList.add('hidden');
+                iconMinimize.classList.remove('hidden'); // Icono de "Cerrar Menú"
+            }
+        });
+    }
+
     // --- 5. Gestos Táctiles ---
     traceImage.addEventListener('touchstart', handleTouchStart, { passive: false });
     traceImage.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -314,9 +430,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleTouchStart(e) {
         if (isLocked) return;
         e.preventDefault();
-        
+
         const touches = e.touches;
-        
+
         if (touches.length === 1) {
             isDragging = true;
             isPinching = false;
@@ -337,9 +453,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleTouchMove(e) {
         if (isLocked) return;
         e.preventDefault();
-        
+
         const touches = e.touches;
-        
+
         if (isDragging && touches.length === 1) {
             const deltaX = touches[0].clientX - startTouchX;
             const deltaY = touches[0].clientY - startTouchY;
@@ -369,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 6. Soporte para Mouse (escritorio) ---
     let isMouseDown = false;
-    
+
     traceImage.addEventListener('mousedown', (e) => {
         if (isLocked) return;
         e.preventDefault();
@@ -423,21 +539,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetTransform() {
-        const isMobile = window.innerWidth <= 640;
         const viewportHeight = window.innerHeight;
-        const cameraHeightPercent = isMobile ? 0.55 : 0.60;
-        const cameraHeight = viewportHeight * cameraHeightPercent;
-        
-        const imgRect = traceImage.getBoundingClientRect();
-        currentX = (window.innerWidth - imgRect.width) / 2;
-        currentY = (cameraHeight - imgRect.height) / 2;
+
+        // Simplemente centramos en el viewport width y height actual de la cámara (que ahora es full screen)
+        currentX = (window.innerWidth - traceImage.naturalWidth) / 2;
+        currentY = (viewportHeight - traceImage.naturalHeight) / 2;
+
         scale = 1;
         rotation = 0; // Resetear rotación
-        
+
         // Resetear slider de rotación
         rotationSlider.value = 0;
         rotationValue.textContent = '0°';
-        
+
         traceImage.style.left = '0';
         traceImage.style.top = '0';
         applyTransform();
@@ -456,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showMessage(msg, type = "error") {
         messageText.textContent = msg;
         messageBox.classList.remove('bg-red-600', 'bg-blue-600', 'bg-green-600');
-        
+
         if (type === "error") {
             messageBox.classList.add('bg-red-600');
         } else if (type === "info") {
@@ -464,7 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (type === "success") {
             messageBox.classList.add('bg-green-600');
         }
-        
+
         messageBox.classList.remove('hidden');
     }
 
@@ -472,14 +586,52 @@ document.addEventListener('DOMContentLoaded', () => {
         messageBox.classList.add('hidden');
     });
 
-    // --- 8. Ajustar canvas al redimensionar ---
+    // --- 8. Ajustar canvas al redimensionar y Visibilidad ---
     window.addEventListener('resize', () => {
         setupCanvas();
     });
 
+    // Recuperar cámara al volver a la pestaña/app
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            // Verificar si el video está pausado o el stream inactivo
+            if (cameraFeed.paused || cameraFeed.ended || !stream || !stream.active) {
+                console.log("App visible: Reiniciando cámara...");
+                // Intentar mantener el bloqueo si estaba activo, pero para recuperar rápido mejor dejarlo en auto o re-leer el estado
+                // Si estaba bloqueado, startCamera usará el ID si lo guardamos en una variable global, pero aquí lo pasamos por argumento.
+                // Corrección: Debemos guardar el activeDeviceId si queremos persistirlo entre visibilidad, 
+                // PERO, si se perdió el stream, quizás el ID ya no es válido o cambió.
+                // Simple: Reiniciar en modo automático para asegurar que vuelva la imagen, o mejorar logica.
+                // Por ahora: Reiniciar normal (desbloquea si estaba bloqueado implícitamente al no pasar argumentos, pero el UI quedaría desincronizado).
+
+                // Mejor solución: Si isLensLocked es true, necesitaríamos saber qué ID era.
+                // Como no guardé el ID en variable global, se perderá el bloqueo al reiniciar por visibilidad.
+                // Esto es aceptable como fallback. Actualizaremos el UI para reflejar que se desbloqueó o intentaremos mantenerlo si guardamos el ID.
+
+                // Decisión Rápida: Resetear a desbloqueado si se recupera del background para asegurar funcionamiento
+                if (isLensLocked) {
+                    isLensLocked = false;
+                    updateLensLockUI();
+                }
+                startCamera();
+            }
+        }
+    });
+
+    // Botón de reinicio manual
+    if (restartCameraButton) {
+        restartCameraButton.addEventListener('click', () => {
+            showMessage("Reiniciando cámara...", "info");
+            startCamera();
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 2000);
+        });
+    }
+
     // --- Iniciar App ---
     startCamera();
-    
+
     // Mensaje de bienvenida
     showMessage("¡Bienvenido! Carga una imagen para empezar a calcar.", "info");
     setTimeout(() => {

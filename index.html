@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
+
     <!-- iOS Specific Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,18 +14,20 @@
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
     <link rel="apple-touch-icon" href="assets/images/favicon.png">
-    
+
     <title>Visor de Calco AR - Calculador de Dibujos</title>
-    
+
     <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%234F46E5' width='100' height='100'/><text y='75' x='50' text-anchor='middle' font-size='70' fill='white'>📐</text></svg>">
-    
+    <link rel="apple-touch-icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%234F46E5' width='100' height='100'/><text y='75' x='50' text-anchor='middle' font-size='70' fill='white'>📐</text></svg>">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Estilos personalizados -->
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body class="bg-gray-900 text-white">
 
     <!-- 1. El visor de la cámara (fondo) -->
@@ -42,129 +45,223 @@
     <!-- Gradiente de transición -->
     <div class="gradient-overlay"></div>
 
-    <!-- 5. Los controles (parte inferior FIJA) -->
-    <div id="controls" class="bg-gray-900">
+    <!-- 5. Botón de Pantalla Completa (Toggle) -->
+    <button id="toggleControls"
+        class="fixed bottom-4 right-4 z-50 bg-gray-800 text-white p-3 rounded-full shadow-lg border border-gray-600 active:scale-95 transition-transform"
+        aria-label="Pantalla Completa">
+        <svg id="icon-maximize" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4M4 20l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+        </svg>
+        <svg id="icon-minimize" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 11 H5 m14 0 a2 2 0 0 1 2 2 v3 a2 2 0 0 1 -2 2 H5 a2 2 0 0 1 -2 -2 v-3 a2 2 0 0 1 2 -2 z" />
+            <!-- Fallback generic -->
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+        </svg>
+    </button>
+
+    <!-- 6. Los controles (parte inferior FIJA) -->
+    <div id="controls" class="bg-gray-900 transition-transform duration-300 ease-in-out">
         <div class="controls-content h-full flex flex-col justify-center px-4 py-6 gap-4 max-w-4xl mx-auto">
-            
-            <!-- Fila 1: Información de la imagen -->
-            <div id="imageInfo" class="text-xs sm:text-sm text-gray-300 text-center hidden pb-2">
-                <div class="flex flex-wrap justify-center gap-2">
-                    <span id="imageSize" class="bg-gray-800 px-2 py-1 rounded">Tamaño: -</span> 
-                    <span id="imageScale" class="bg-gray-800 px-2 py-1 rounded">Escala: 100%</span>
-                    <span id="imagePosition" class="bg-gray-800 px-2 py-1 rounded">Pos: (0, 0)</span>
-                    <span id="imageRotation" class="bg-gray-800 px-2 py-1 rounded">Rot: 0°</span>
-                </div>
-            </div>
-            
-            <!-- Fila 2: Control de Opacidad -->
-            <div class="bg-gray-800 rounded-lg p-4">
-                <div class="flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z" clip-rule="evenodd" />
-                    </svg>
-                    <div class="flex-1 flex items-center gap-2">
-                        <span class="text-sm font-medium text-gray-300 whitespace-nowrap">Opacidad</span>
-                        <input id="opacitySlider" type="range" min="0" max="100" value="50" class="flex-1 h-2">
+
+            <!-- CONTENEDOR PRINCIPAL -->
+            <div id="mainMenu" class="space-y-4">
+                <!-- Fila 1: Información de la imagen -->
+                <div id="imageInfo" class="text-xs sm:text-sm text-gray-300 text-center hidden pb-2">
+                    <div class="flex flex-wrap justify-center gap-2">
+                        <span id="imageSize" class="bg-gray-800 px-2 py-1 rounded">Tamaño: -</span>
+                        <span id="imageScale" class="bg-gray-800 px-2 py-1 rounded">Escala: 100%</span>
+                        <span id="imagePosition" class="bg-gray-800 px-2 py-1 rounded">Pos: (0, 0)</span>
+                        <span id="imageRotation" class="bg-gray-800 px-2 py-1 rounded">Rot: 0°</span>
                     </div>
-                    <span id="opacityValue" class="text-sm font-bold text-blue-400 w-12 text-right">50%</span>
                 </div>
-            </div>
 
-            <!-- Fila 3: Control de Rotación -->
-            <div class="bg-gray-800 rounded-lg p-4">
-                <div class="flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
-                    </svg>
-                    <button id="rotationDecrement" class="touch-manipulation bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white font-bold rounded-lg w-10 h-10 flex items-center justify-center transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                <!-- Fila 2: Control de Opacidad -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 text-blue-400"
+                            viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z"
+                                clip-rule="evenodd" />
                         </svg>
-                    </button>
-                    <div class="flex-1 flex items-center gap-2">
-                        <span class="text-sm font-medium text-gray-300 whitespace-nowrap">Rotación</span>
-                        <input id="rotationSlider" type="range" min="0" max="360" value="0" class="flex-1 h-2">
+                        <div class="flex-1 flex items-center gap-2">
+                            <span
+                                class="text-sm font-medium text-gray-300 whitespace-nowrap hidden sm:block">Opacidad</span>
+                            <input id="opacitySlider" type="range" min="0" max="100" value="50" class="flex-1 h-2">
+                        </div>
+                        <span id="opacityValue"
+                            class="text-sm font-bold text-blue-400 w-12 text-right hidden sm:block">50%</span>
                     </div>
-                    <button id="rotationIncrement" class="touch-manipulation bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white font-bold rounded-lg w-10 h-10 flex items-center justify-center transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <span id="rotationValue" class="text-sm font-bold text-green-400 w-12 text-right">0°</span>
                 </div>
-            </div>
 
-            <!-- Fila 4: Botones de control -->
-            <div class="grid grid-cols-4 gap-3">
-                <label for="upload" class="touch-manipulation cursor-pointer bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-2 shadow-lg hover:shadow-xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-sm">Subir</span>
-                </label>
-                <input type="file" id="upload" accept="image/*" class="hidden">
-
-                <button id="filtersButton" class="touch-manipulation bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-2 shadow-lg hover:shadow-xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-sm">Filtros</span>
-                </button>
-
-                <button id="resetButton" class="touch-manipulation bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-2 shadow-lg hover:shadow-xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-sm">Reset</span>
-                </button>
-
-                <button id="lockButton" class="touch-manipulation bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-2 shadow-lg hover:shadow-xl">
-                    <svg id="icon-unlocked" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
-                    </svg>
-                    <svg id="icon-locked" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 hidden" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-                    </svg>
-                    <span id="lockText" class="text-sm">Libre</span>
-                </button>
-            </div>
-
-            <!-- Panel de Filtros (oculto por defecto) -->
-            <div id="filtersPanel" class="hidden bg-gray-800 rounded-lg p-4 space-y-3">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                <!-- Fila 3: Control de Rotación -->
+                <div class="bg-gray-800 rounded-lg p-4">
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0 text-green-400"
+                            viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                                clip-rule="evenodd" />
                         </svg>
-                        Filtros de Imagen
+                        <button id="rotationDecrement"
+                            class="touch-manipulation bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white font-bold rounded-lg w-10 h-10 flex items-center justify-center transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div class="flex-1 flex items-center gap-2">
+                            <span class="text-sm font-medium text-gray-300 whitespace-nowrap">Rotación</span>
+                            <input id="rotationSlider" type="range" min="0" max="360" value="0" class="flex-1 h-2">
+                        </div>
+                        <button id="rotationIncrement"
+                            class="touch-manipulation bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white font-bold rounded-lg w-10 h-10 flex items-center justify-center transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <span id="rotationValue"
+                            class="text-sm font-bold text-green-400 w-12 text-right hidden sm:block">0°</span>
+                    </div>
+                </div>
+
+                <!-- Fila 4: Botones de control -->
+                <div class="grid grid-cols-3 gap-3">
+                    <label for="upload"
+                        class="touch-manipulation cursor-pointer bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 shadow-lg hover:shadow-xl py-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span class="text-[10px] sm:text-xs hidden sm:block">Subir</span>
+                    </label>
+                    <input type="file" id="upload" accept="image/*" class="hidden">
+
+                    <button id="filtersButton"
+                        class="touch-manipulation bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 shadow-lg hover:shadow-xl py-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span class="text-[10px] sm:text-xs hidden sm:block">Filtros</span>
+                    </button>
+
+                    <button id="resetButton"
+                        class="touch-manipulation bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 shadow-lg hover:shadow-xl py-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span class="text-[10px] sm:text-xs hidden sm:block">Reset</span>
+                    </button>
+
+                    <button id="lockButton"
+                        class="touch-manipulation bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 shadow-lg hover:shadow-xl py-2">
+                        <svg id="icon-unlocked" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path
+                                d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
+                        </svg>
+                        <svg id="icon-locked" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden"
+                            viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span id="lockText" class="text-[10px] sm:text-xs hidden sm:block">Fijar IMG</span>
+                    </button>
+
+                    <!-- Lens Lock Button -->
+                    <button id="lensLockButton"
+                        class="touch-manipulation bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 shadow-lg hover:shadow-xl py-2">
+                        <svg id="lens-unlocked" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
+                            <path
+                                d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" />
+                        </svg>
+                        <svg id="lens-locked" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden"
+                            viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span id="lensLockText" class="text-[10px] sm:text-xs hidden sm:block">Lente</span>
+                    </button>
+
+                    <!-- Camera Restart Button -->
+                    <button id="restartCameraButton"
+                        class="touch-manipulation bg-red-800 hover:bg-red-700 active:bg-red-900 text-white font-bold rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 shadow-lg hover:shadow-xl py-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M4 2a2 2 0 00-2 2v11a3 3 0 106 0V4a2 2 0 00-2-2H4zm1 14a1 1 0 100-2 1 1 0 000 2zm5-1.757l4.9-4.9a2 2 0 000-2.828L13.485 5.1a2 2 0 00-2.828 0L10 5.757v8.486zM16 18H9.071l6-6H16a2 2 0 012 2v2a2 2 0 01-2 2z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span class="text-[10px] sm:text-xs hidden sm:block">Reiniciar</span>
+                    </button>
+                </div>
+            </div> <!-- CIERRE DE MENU PRINCIPAL -->
+
+            <!-- Panel de Filtros (SUB-MENU) -->
+            <div id="filtersPanel" class="hidden space-y-3 h-full">
+                <div class="flex items-center justify-between mb-3 border-b border-gray-700 pb-2">
+                    <button id="backToMain"
+                        class="text-white hover:text-blue-400 flex items-center gap-2 font-bold px-2 py-1 rounded hover:bg-gray-800 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Volver
+                    </button>
+                    <h3 class="text-sm font-bold text-gray-300 flex items-center gap-2">
+                        Filtros
                     </h3>
-                    <button id="closeFilters" class="text-gray-400 hover:text-white text-xl font-bold">✕</button>
                 </div>
-                
+
                 <!-- Filtros predefinidos -->
-                <div class="grid grid-cols-2 gap-2">
-                    <button data-filter="none" class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
+                <div class="grid grid-cols-2 gap-2 max-h-[40vh] overflow-y-auto">
+                    <button data-filter="none"
+                        class="filter-btn active bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
                         Normal
                     </button>
-                    <button data-filter="grayscale(100%)" class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
+                    <button data-filter="grayscale(100%)"
+                        class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
                         Blanco y Negro
                     </button>
-                    <button data-filter="contrast(200%)" class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
+                    <button data-filter="contrast(200%)"
+                        class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
                         Alto Contraste
                     </button>
-                    <button data-filter="invert(100%)" class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
+                    <button data-filter="invert(100%)"
+                        class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
                         Invertir Colores
                     </button>
-                    <button data-filter="brightness(150%)" class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
+                    <button data-filter="brightness(150%)"
+                        class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
                         Más Brillo
                     </button>
-                    <button data-filter="brightness(50%)" class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
+                    <button data-filter="brightness(50%)"
+                        class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
                         Menos Brillo
                     </button>
-                    <button data-filter="grayscale(100%) contrast(200%)" class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
+                    <button data-filter="grayscale(100%) contrast(200%)"
+                        class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
                         B/N + Contraste
                     </button>
-                    <button data-filter="sepia(100%)" class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
+                    <button data-filter="sepia(100%)"
+                        class="filter-btn bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-lg transition-all">
                         Sepia
                     </button>
                 </div>
@@ -172,12 +269,15 @@
                 <!-- Toggle de cuadrícula -->
                 <div class="flex items-center justify-between bg-gray-700 rounded-lg p-3 mt-4">
                     <div class="flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM13 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path
+                                d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM13 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2z" />
                         </svg>
                         <span class="text-sm font-medium text-white">Cuadrícula</span>
                     </div>
-                    <button id="gridToggle" class="bg-gray-600 hover:bg-gray-500 text-white text-sm py-1 px-4 rounded-lg transition-all">
+                    <button id="gridToggle"
+                        class="bg-gray-600 hover:bg-gray-500 text-white text-sm py-1 px-4 rounded-lg transition-all">
                         <span id="gridText">Mostrar</span>
                     </button>
                 </div>
@@ -186,7 +286,9 @@
     </div>
 
     <!-- 6. Mensajes (Error o Info) -->
-    <div id="messageBox" class="absolute top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white p-4 rounded-lg shadow-lg hidden max-w-md w-11/12" style="z-index: 30;">
+    <div id="messageBox"
+        class="absolute top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white p-4 rounded-lg shadow-lg hidden max-w-md w-11/12"
+        style="z-index: 30;">
         <div class="flex items-center justify-between">
             <span id="messageText" class="flex-1"></span>
             <button id="closeMessage" class="ml-4 font-bold hover:text-gray-200">✕</button>
@@ -196,4 +298,5 @@
     <!-- JavaScript modularizado -->
     <script src="app.js"></script>
 </body>
+
 </html>
