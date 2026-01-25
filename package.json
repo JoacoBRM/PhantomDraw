@@ -1,0 +1,27 @@
+{
+  "name": "proyecto_ar_jb",
+  "version": "1.0.0",
+  "description": "Aplicación web para superponer imágenes sobre la cámara en tiempo real, ideal para calcar dibujos o realizar trazados de referencia.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "tailwindcss -i ./src/input.css -o ./dist/output.css --minify",
+    "build:css:watch": "tailwindcss -i ./src/input.css -o ./dist/output.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoacoBRM/proyecto_ar_jb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JoacoBRM/proyecto_ar_jb/issues"
+  },
+  "homepage": "https://github.com/JoacoBRM/proyecto_ar_jb#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.1"
+  }
+}
