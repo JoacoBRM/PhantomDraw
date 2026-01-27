@@ -497,20 +497,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetTransform() {
         const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
 
-        // Safety check
-        if (!traceImage.naturalWidth || !traceImage.naturalHeight) {
-            console.warn("Imagen sin dimensiones, usando defaults.");
-            currentX = window.innerWidth / 2;
-            currentY = viewportHeight / 2;
-        } else {
-            // Simplemente centramos en el viewport width y height actual de la cámara (que ahora es full screen)
-            currentX = (window.innerWidth - traceImage.naturalWidth) / 2;
-            currentY = (viewportHeight - traceImage.naturalHeight) / 2;
-        }
+        // Force layout update just in case
+        const imgWidth = traceImage.offsetWidth;
+        const imgHeight = traceImage.offsetHeight;
 
         scale = 1;
         rotation = 0; // Resetear rotación
+
+        // Safety check
+        if (!imgWidth || !imgHeight) {
+            console.warn("Imagen sin dimensiones renderizadas, usando defaults.");
+            // Si falla la lectura del width/height renderizado, intentamos con natural pero con cuidado
+            // O simplemente centramos a ciegas en el medio
+            currentX = (viewportWidth - (traceImage.naturalWidth || 100)) / 2;
+            currentY = (viewportHeight - (traceImage.naturalHeight || 100)) / 2;
+        } else {
+            // Centrar basado en el tamaño RENDERIZADO (que respeta max-width/max-height CSS)
+            currentX = (viewportWidth - imgWidth) / 2;
+            currentY = (viewportHeight - imgHeight) / 2;
+
+            // Escalar si la imagen es muy pequeña para manipularla fácilmente
+            const minDimension = Math.min(imgWidth, imgHeight);
+            const targetMinSize = Math.min(viewportWidth, viewportHeight) * 0.5; // Al menos 50% de la pantalla
+
+            if (minDimension < targetMinSize) {
+                // Calcular escala necesaria para llegar al target
+                let suggestedScale = targetMinSize / minDimension;
+                // Limitar la escala máxima automática a 3x para no exagerar
+                scale = Math.min(suggestedScale, 3);
+            }
+        }
 
         // Resetear slider de rotación
         rotationSlider.value = 0;
